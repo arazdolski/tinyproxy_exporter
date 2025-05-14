@@ -19,11 +19,8 @@ class TinyproxyCollector(object):
         handler = urllib.request.ProxyHandler({'http': self.tinyproxy})
         opener = urllib.request.build_opener(handler)
         urllib.request.install_opener(opener)
-        response = urllib.request.urlopen('http://{0}'.format(self.stathost))
-        values = [
-            float(x) for x in re.findall(
-                b'(?:<td>|: )(\d+)(?:</td>|<br />|\n</p>)', response.read())
-        ]
+        response = urllib.request.urlopen('http://tinyproxy.stats').read().decode('utf-8')
+        values = re.findall(r'<td[^>]*>\s*(\d+)\s*</td>', response)
         yield GaugeMetricFamily('tinyproxy_connections_open',
                                 'Number of open connections', values[0])
         yield CounterMetricFamily('tinyproxy_requests_total',
