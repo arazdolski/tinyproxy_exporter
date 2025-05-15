@@ -23,15 +23,15 @@ class TinyproxyCollector(object):
         values = re.findall(r'<td[^>]*>\s*(\d+)\s*</td>', response)
         yield GaugeMetricFamily('tinyproxy_connections_open',
                                 'Number of open connections', values[0])
-        yield CounterMetricFamily('tinyproxy_requests_total',
-                                  'Number of requests', values[1])
         yield CounterMetricFamily('tinyproxy_connections_bad_total',
-                                  'Number of bad connections', values[2])
+                                  'Number of bad connections', values[1])
         yield CounterMetricFamily('tinyproxy_connections_denied_total',
-                                  'Number of denied connections', values[3])
+                                  'Number of denied connections', values[2])
         yield CounterMetricFamily(
             'tinyproxy_connections_refused_total',
-            'Number of refused connections due to high load', values[4])
+            'Number of refused connections due to high load', values[3])
+        yield CounterMetricFamily('tinyproxy_requests_total',
+                                  'Number of requests', values[4])
 
 
 def parse_args():
@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument(
         '-l',
         metavar='LISTEN',
-        default=':9240',
+        default='9240',
         help='address on which to expose metrics (default ":9240")')
     parser.add_argument(
         '-s',
@@ -57,9 +57,8 @@ def parse_args():
 def main():
     try:
         args = parse_args()
-        addr, port = args.l.split(':')
         REGISTRY.register(TinyproxyCollector(args.s, args.t))
-        start_http_server(int(port), addr)
+        start_http_server(int(args.l))
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
